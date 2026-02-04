@@ -1,0 +1,6 @@
+@OnlineEnrollment_DownpaymentSystem.API_HostAddress = http://localhost:5080
+
+GET {{OnlineEnrollment_DownpaymentSystem.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

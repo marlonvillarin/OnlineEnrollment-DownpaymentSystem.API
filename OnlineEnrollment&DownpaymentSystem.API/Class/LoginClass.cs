@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
+
 namespace OnlineEnrollment_DownpaymentSystem.API.Class
 {
     public class LoginClass : ILoginRepository
@@ -14,18 +15,18 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
         public LoginClass(IConfiguration config) 
         {
             _configuration = config;
-            conn = new SqlConnection(config["ConnectionString:onlineEnrollmentdb"]);
+            conn = new SqlConnection(config["ConnectionString:Enrollmentdb"]);
           }
 
-        public async Task<ServiceResponse<object>> GetLogin(string username, string password)
+        public async Task<ServiceResponse<object>> GetLogin(string username, string PasswordHash)
         {
             var service = new ServiceResponse<object>();
             try
             {
                 var param = new DynamicParameters();
-                param.Add("@username", username);
-                param.Add("@password", password);
-                param.Add("@statementType", "GETLOGIN");
+                param.Add("@Username", username);
+                param.Add("@PasswordHash", PasswordHash);
+                param.Add("@StatementType", "GETLOGIN");
 
                 var result = conn.Query("SP_ENROLLMENT_GETUSERLOGIN", param, commandType: CommandType.StoredProcedure).ToList();
                 if (result.Count > 0)

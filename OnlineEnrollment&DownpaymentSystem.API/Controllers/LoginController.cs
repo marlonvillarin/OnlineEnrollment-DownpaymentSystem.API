@@ -15,12 +15,13 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
 
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> LoginStudent(@object login)
         {
             @object model = new @object();
-            var response = loginRepository.GetLogin(login.Username, login.Password);
-            return BadRequest();
+            var response = loginRepository.GetLogin(" ", " ");
+            return Ok(response);
         }
+
     }
 }

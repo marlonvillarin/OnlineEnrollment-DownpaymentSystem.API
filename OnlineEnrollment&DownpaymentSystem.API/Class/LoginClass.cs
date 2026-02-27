@@ -4,6 +4,7 @@ using OnlineEnrollment_DownpaymentSystem.API.Model;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using BCrypt.Net;
 
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Class
@@ -12,6 +13,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
     {
         private readonly IConfiguration _configuration;
         private readonly SqlConnection conn;
+
         public LoginClass(IConfiguration config) 
         {
             _configuration = config;

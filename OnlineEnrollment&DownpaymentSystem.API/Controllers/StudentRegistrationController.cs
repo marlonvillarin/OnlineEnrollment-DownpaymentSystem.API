@@ -27,7 +27,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             // Hash the password BEFORE passing it to the repository
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
-            // Create a new RegisterAccountModel with the hashed password
             var registrationModel = new RegisterAccountModel
             {
                 Username = model.Username,

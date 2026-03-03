@@ -1,67 +1,153 @@
 ﻿using Dapper;
-using OnlineEnrollment_DownpaymentSystem.API.Controllers;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
 using OnlineEnrollment_DownpaymentSystem.API.Model;
-using System.Data;
+using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 using System.Data.SqlClient;
+using System.Data;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Class
 {
     public class StudentClass : IStudentRepository
     {
-        private readonly IConfiguration _configuration;
         private readonly SqlConnection conn;
 
         public StudentClass(IConfiguration config)
         {
-            _configuration = config;
             conn = new SqlConnection(config["ConnectionString:Enrollmentdb"]);
         }
-        public async Task<ServiceResponse<StudentProfileModel>> GetStudentProfile(int StudentID)
+
+        public async Task<ServiceResponse<StudentModel>> CreateStudent(StudentModel student)
         {
-            ServiceResponse<StudentProfileModel> service = new ServiceResponse<StudentProfileModel>();
+            var service = new ServiceResponse<StudentModel>();
             try
             {
-                // NEW: Validate studentId BEFORE querying the database**
-                if (StudentID <= 0) 
-                {
-                    service.Status = 400; // Bad Request
-                    service.Message = "Invalid StudentID";
-                    return service; // Return early
-                }
+                var param = new DynamicParameters();
+                param.Add("@FirstName", student.FirstName);
+                param.Add("@LastName", student.LastName);
+                param.Add("@MiddleName", student.MiddleName);
+                param.Add("@Gender", student.Gender);
+                param.Add("@BirthDate", student.BirthDate);
+                param.Add("@ContactNumber", student.ContactNumber);
+                param.Add("@Email", student.Email);
+                param.Add("@Address", student.Address);
+                param.Add("@StudentType", student.StudentType);
+                param.Add("@StatementType", "INSERT");
 
-                DynamicParameters parameters = new DynamicParameters();
-                parameters.Add("@StudentID", StudentID, DbType.Int32);
+                var studentID = await conn.QueryFirstOrDefaultAsync<int>("SP_STUDENT", param, commandType: CommandType.StoredProcedure);
 
-
-                StudentProfileModel student = await conn.QueryFirstOrDefaultAsync<StudentProfileModel>("SP_GetStudentProfile", parameters, commandType: CommandType.StoredProcedure);
-
-                if (student != null)
-                {
-                    service.Status = 200;
-                    service.Message = "Student profile retrieved successfully";
-                    service.Data = student;
-                }
-                else
-                {
-                    service.Status = 404;
-                    service.Message = "Student not found";
-                }
+                student.StudentID = studentID;
+                service.Status = 200;
+                service.Data = student;
+                service.Message = "Student created successfully";
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                if (ex.Number == 50000 && ex.Message.Contains("Student not found"))
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
+
+        public async Task<ServiceResponse<StudentModel>> UpdateStudent(StudentModel student)
+        {
+            var service = new ServiceResponse<StudentModel>();
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StudentID", student.StudentID);
+                param.Add("@FirstName", student.FirstName);
+                param.Add("@LastName", student.LastName);
+                param.Add("@MiddleName", student.MiddleName);
+                param.Add("@Gender", student.Gender);
+                param.Add("@BirthDate", student.BirthDate);
+                param.Add("@ContactNumber", student.ContactNumber);
+                param.Add("@Email", student.Email);
+                param.Add("@Address", student.Address);
+                param.Add("@StatementType", "UPDATE");
+
+                await conn.ExecuteAsync("SP_STUDENT", param, commandType: CommandType.StoredProcedure);
+
+                service.Status = 200;
+                service.Data = student;
+                service.Message = "Student updated successfully";
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+            return service;
+        }
+
+        public async Task<ServiceResponse<StudentModel>> GetStudentByID(int studentID)
+        {
+            var service = new ServiceResponse<StudentModel>();
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StudentID", studentID);
+                param.Add("@StatementType", "GETBYID");
+
+                var student = await conn.QueryFirstOrDefaultAsync<StudentModel>("SP_STUDENT", param, commandType: CommandType.StoredProcedure);
+
+                service.Status = 200;
+                service.Data = student;
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+            return service;
+        }
+
+        public async Task<ServiceResponse<StudentDocumentModel>> UploadDocument(int studentID, string documentType, string filePath)
+        {
+            var service = new ServiceResponse<StudentDocumentModel>();
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StudentID", studentID);
+                param.Add("@DocumentType", documentType);
+                param.Add("@FilePath", filePath);
+                param.Add("@StatementType", "INSERT");
+
+                var documentID = await conn.QueryFirstOrDefaultAsync<int>("SP_STUDENTDOCUMENTS", param, commandType: CommandType.StoredProcedure);
+
+                service.Status = 200;
+                service.Message = "Document uploaded successfully";
+                service.Data = new StudentDocumentModel
                 {
-                   
-                    service.Status = 404;
-                    service.Message = "Student not found";
-                }
-                else
-                {
-                    
-                    service.Status = 500;
-                    service.Message = ex.Message;
-                }
+                    DocumentID = documentID,
+                    StudentID = studentID,
+                    DocumentType = documentType,
+                    FilePath = filePath,
+                    IsApproved = false,
+                    UploadedDate = DateTime.Now
+                };
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+            return service;
+        }
+
+        public async Task<ServiceResponse<List<StudentDocumentModel>>> GetDocumentsByStudent(int studentID)
+        {
+            var service = new ServiceResponse<List<StudentDocumentModel>>();
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StudentID", studentID);
+                param.Add("@StatementType", "GETBYSTUDENT");
+
+                var documents = (await conn.QueryAsync<StudentDocumentModel>("SP_STUDENTDOCUMENTS", param, commandType: CommandType.StoredProcedure)).ToList();
+
+                service.Status = 200;
+                service.Data = documents;
             }
             catch (Exception ex)
             {

@@ -1,12 +1,13 @@
 ﻿namespace OnlineEnrollment_DownpaymentSystem.API.Model
 {
-    public class EnrollmentModel
+    public class GradesModel
     {
-        public int EnrollmentID { get; set; }
+        public int GradeID { get; set; }
         public int StudentID { get; set; }
-        public string Course { get; set; }
+        public string SubjectName { get; set; }
         public string SchoolYear { get; set; }
         public string Semester { get; set; }
-        public string EnrollmentStatus { get; set; } 
+        public decimal? Grade { get; set; }
+        public string? Remarks { get; set; }
     }
 }

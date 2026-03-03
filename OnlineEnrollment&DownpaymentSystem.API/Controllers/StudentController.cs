@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
 using OnlineEnrollment_DownpaymentSystem.API.Model;
+using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-   public class StudentController : ControllerBase
+    public class StudentController : ControllerBase
     {
         private readonly IStudentRepository _studentRepository;
 
@@ -15,23 +16,39 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             _studentRepository = studentRepository;
         }
 
-        [HttpGet("{studentId}")]
-        public async Task<IActionResult> GetStudentProfile(int StudentID)
+        [HttpPost]
+        public async Task<IActionResult> CreateStudent([FromBody] StudentModel student)
         {
-            ServiceResponse<StudentProfileModel> response = await _studentRepository.GetStudentProfile(StudentID);  
+            var response = await _studentRepository.CreateStudent(student);
+            return StatusCode(response.Status, response);
+        }
 
-            if (response.Status == 200)
-            {
-                return Ok(response.Data); 
-            }
-            else if (response.Status == 404)
-            {
-                return NotFound(response.Message); 
-            }
-            else
-            {
-                return StatusCode(response.Status, response.Message); 
-            }
+        [HttpPut]
+        public async Task<IActionResult> UpdateStudent([FromBody] StudentModel student)
+        {
+            var response = await _studentRepository.UpdateStudent(student);
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpGet("{studentID}")]
+        public async Task<IActionResult> GetStudent(int studentID)
+        {
+            var response = await _studentRepository.GetStudentByID(studentID);
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpPost("documents")]
+        public async Task<IActionResult> UploadDocument(int studentID, string documentType, string filePath)
+        {
+            var response = await _studentRepository.UploadDocument(studentID, documentType, filePath);
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpGet("documents/{studentID}")]
+        public async Task<IActionResult> GetDocuments(int studentID)
+        {
+            var response = await _studentRepository.GetDocumentsByStudent(studentID);
+            return StatusCode(response.Status, response);
         }
     }
 }

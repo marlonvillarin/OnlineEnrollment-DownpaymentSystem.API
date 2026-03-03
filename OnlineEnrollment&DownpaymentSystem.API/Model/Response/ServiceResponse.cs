@@ -1,4 +1,4 @@
-﻿namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
+﻿namespace OnlineEnrollment_DownpaymentSystem.API.Model.Response
 {
     public class ServiceResponse<T>
     {

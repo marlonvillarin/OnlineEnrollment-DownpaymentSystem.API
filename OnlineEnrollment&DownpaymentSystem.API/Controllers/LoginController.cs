@@ -1,27 +1,32 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
-using OnlineEnrollment_DownpaymentSystem.API.Model;
+using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class LoginController : Controller
+    public class LoginController : ControllerBase
     {
-        ILoginRepository loginRepository;
-        public LoginController(ILoginRepository login) 
+        private readonly ILoginRepository _loginRepository;
+
+        public LoginController(ILoginRepository loginRepository)
         {
-        loginRepository = login;
+            _loginRepository = loginRepository;
         }
 
-
-        [HttpPost]
-        public async Task<IActionResult> LoginStudent(@object login)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateLogin(int studentID, string username, string password)
         {
-            @object model = new @object();
-            var response = loginRepository.GetLogin(" ", " ");
-            return Ok(response);
+            var response = await _loginRepository.CreateLogin(studentID, username, password);
+            return StatusCode(response.Status, response);
         }
 
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate(string username, string password)
+        {
+            var response = await _loginRepository.Authenticate(username, password);
+            return StatusCode(response.Status, response);
+        }
     }
 }

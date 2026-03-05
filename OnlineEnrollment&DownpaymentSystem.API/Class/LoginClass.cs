@@ -4,6 +4,10 @@ using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 using System.Data.SqlClient;
 using System.Data;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using BCrypt.Net;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Class
@@ -84,10 +88,22 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                     return service;
                 }
 
+                string token = GenerateToken(user);
+
                 service.Status = 200;
                 service.Message = "Authentication successful";
-                service.Data = user;
+                service.Data = new StudentLoginModel
+                {
+                    LoginID = user.LoginID,
+                    StudentID = user.StudentID,
+                    Username = user.Username,
+                    PasswordHash = user.PasswordHash
+                };
+
+                // You can add token property in ServiceResponse
+                service.Token = token;
             }
+
             catch (Exception ex)
             {
                 service.Status = 500;
@@ -96,5 +112,39 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
+
+        private string GenerateToken(StudentLoginModel user)
+        {
+            var jwtSettings = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build()
+                .GetSection("JwtSettings");
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["SecretKey"])
+            );
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+        new Claim("StudentID", user.StudentID.ToString()),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(
+                    Convert.ToDouble(jwtSettings["ExpiryMinutes"])
+                ),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }

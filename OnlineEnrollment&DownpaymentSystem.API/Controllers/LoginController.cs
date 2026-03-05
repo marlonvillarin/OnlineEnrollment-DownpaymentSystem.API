@@ -15,7 +15,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             _loginRepository = loginRepository;
         }
 
-        [HttpPost("create")]
+        [HttpPost("Creating/Student")]
         public async Task<IActionResult> CreateLogin(int studentID, string username, string password)
         {
             var response = await _loginRepository.CreateLogin(studentID, username, password);

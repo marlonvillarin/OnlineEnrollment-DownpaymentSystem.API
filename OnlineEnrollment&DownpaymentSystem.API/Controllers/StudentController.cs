@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
 using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
@@ -7,6 +8,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class StudentController : ControllerBase
     {
         private readonly IStudentRepository _studentRepository;
@@ -31,6 +33,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
         [HttpGet("{studentID}")]
+        
         public async Task<IActionResult> GetStudent(int studentID)
         {
             var response = await _studentRepository.GetStudentByID(studentID);

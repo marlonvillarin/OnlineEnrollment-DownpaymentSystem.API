@@ -8,7 +8,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize]
+    
     public class StudentController : ControllerBase
     {
         private readonly IStudentRepository _studentRepository;

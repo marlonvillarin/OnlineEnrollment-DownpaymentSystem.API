@@ -10,9 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // JWT Settings from appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 
-// -----------------------
-// Authentication & Authorization
-// -----------------------
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -33,9 +31,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// -----------------------
-// Dependency Injection
-// -----------------------
+
+builder.Services.AddScoped<IUserLoginRepository, UserLoginClass>();
 builder.Services.AddScoped<ILoginRepository, LoginClass>();
 builder.Services.AddScoped<IStudentRepository, StudentClass>();
 builder.Services.AddScoped<INotificationRepository, NotificationClass>();
@@ -46,6 +43,16 @@ builder.Services.AddScoped<IStudentDocumentRepository, DocumentClass>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentClass>();
 
 // Controllers & Swagger
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAll", policy =>
+//    {
+//        policy.AllowAnyOrigin()
+//              .AllowAnyHeader()
+//              .AllowAnyMethod();
+//    });
+//});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -79,19 +86,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
-// -----------------------
-// Middleware
-// -----------------------
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
-app.UseAuthentication(); // ✅ must be before authorization
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

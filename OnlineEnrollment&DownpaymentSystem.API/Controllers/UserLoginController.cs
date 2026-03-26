@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
+using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
+
+
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
@@ -21,11 +24,11 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             var response = await _userLoginRepo.CreateLogin(username, password, role);
             return StatusCode(response.Status, response);
         }
-
+       
         [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate(string username, string password)
+        public async Task<IActionResult> Authenticate([FromBody] LoginRequest login)
         {
-            var response = await _userLoginRepo.Authenticate(username, password);
+            var response = await _userLoginRepo.Authenticate(login.Username, login.Password);
             return StatusCode(response.Status, response);
         }
     }

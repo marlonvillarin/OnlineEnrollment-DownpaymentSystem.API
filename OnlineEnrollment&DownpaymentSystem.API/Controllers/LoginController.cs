@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
+using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
@@ -15,10 +16,10 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             _loginRepository = loginRepository;
         }
 
-        [HttpPost("Creating/Student")]
-        public async Task<IActionResult> CreateLogin(int studentID, string username, string password)
+        [HttpPost("Creating/Student/{studentID}")]
+        public async Task<IActionResult> CreateLogin(int studentID, [FromBody] StudentCreateModel login)
         {
-            var response = await _loginRepository.CreateLogin(studentID, username, password);
+            var response = await _loginRepository.CreateLogin(studentID, login.Username, login.Password);
             return StatusCode(response.Status, response);
         }
 

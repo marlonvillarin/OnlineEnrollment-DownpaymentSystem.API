@@ -42,5 +42,12 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             var response = await _paymentRepository.GetPaymentByID(paymentID);
             return StatusCode(response.Status, response);
         }
+
+        [HttpGet("AllPayment")]
+        public async Task<IActionResult> GetAll()
+        {
+            var response = await _paymentRepository.GetAllPayments();
+            return StatusCode(response.Status, response);
+        }
     }
 }

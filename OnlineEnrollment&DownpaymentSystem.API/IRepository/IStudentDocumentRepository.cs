@@ -5,6 +5,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
 {
     public interface IStudentDocumentRepository
     {
+        Task<ServiceResponse<List<DocumentModel>>> GetAllDocuments();
         Task<ServiceResponse<object>> InsertStudentDocument(DocumentModel studentDocument);
     }
 }

@@ -10,5 +10,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
         Task<ServiceResponse<StudentModel>> GetStudentByID(int studentID);
         Task<ServiceResponse<StudentDocumentModel>> UploadDocument(int studentID, string documentType, string filePath);
         Task<ServiceResponse<List<StudentDocumentModel>>> GetDocumentsByStudent(int studentID);
+        Task<ServiceResponse<List<StudentModel>>> GetAllStudents();
     }
 }

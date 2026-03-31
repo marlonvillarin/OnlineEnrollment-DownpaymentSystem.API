@@ -32,5 +32,15 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 
             return StatusCode(500, response.Message);
         }
+       
+        [HttpGet("AllDocuments")]
+        public async Task<IActionResult> GetAllDocuments()
+        {
+            var response = await _studentDocumentRepository.GetAllDocuments();
+            return StatusCode(response.Status, response);
+        }
+
+        
+  
     }
 }

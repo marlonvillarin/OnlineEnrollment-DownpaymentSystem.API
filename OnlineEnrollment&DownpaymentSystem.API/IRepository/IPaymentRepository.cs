@@ -9,5 +9,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
         Task<ServiceResponse<PaymentModel>> UpdatePaymentStatus(int paymentID, string status);
         Task<ServiceResponse<List<PaymentModel>>> GetPaymentsByEnrollment(int enrollmentID);
         Task<ServiceResponse<PaymentModel>> GetPaymentByID(int paymentID);
+        Task<ServiceResponse<List<PaymentModel>>> GetAllPayments();
     }
 }

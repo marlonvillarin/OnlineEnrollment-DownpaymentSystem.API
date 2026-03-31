@@ -8,5 +8,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
         Task<ServiceResponse<EnrollmentModel>> CreateEnrollment(EnrollmentModel enrollment);
         Task<ServiceResponse<EnrollmentModel>> UpdateEnrollmentStatus(int enrollmentID, string status);
         Task<ServiceResponse<List<EnrollmentModel>>> GetEnrollmentsByStudent(int studentID);
+        Task<ServiceResponse<List<EnrollmentModel>>> GetAllEnrollments();
     }
 }

@@ -90,5 +90,31 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             }
             return service;
         }
+        public async Task<ServiceResponse<List<EnrollmentModel>>> GetAllEnrollments()
+        {
+            var service = new ServiceResponse<List<EnrollmentModel>>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "GETALL");
+
+                var result = (await conn.QueryAsync<EnrollmentModel>(
+                    "SP_ENROLLMENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
+
+                service.Status = 200;
+                service.Data = result;
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
     }
 }

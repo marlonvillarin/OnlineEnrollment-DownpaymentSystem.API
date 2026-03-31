@@ -156,5 +156,31 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             }
             return service;
         }
+        public async Task<ServiceResponse<List<StudentModel>>> GetAllStudents()
+        {
+            var service = new ServiceResponse<List<StudentModel>>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "GETALL");
+
+                var result = (await conn.QueryAsync<StudentModel>(
+                    "SP_STUDENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
+
+                service.Status = 200;
+                service.Data = result;
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
     }
 }

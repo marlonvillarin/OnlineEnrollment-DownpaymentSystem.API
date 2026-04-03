@@ -5,7 +5,7 @@ using OnlineEnrollment_DownpaymentSystem.API.Model;
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
-    [Route("students")]
+    [Route("api/[controller]")]
     public class StudentDocumentController : ControllerBase
     {
         private readonly IStudentDocumentRepository _studentDocumentRepository;

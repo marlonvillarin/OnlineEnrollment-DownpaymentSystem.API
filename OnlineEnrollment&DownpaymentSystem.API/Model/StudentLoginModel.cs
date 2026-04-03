@@ -9,7 +9,8 @@
     }
     public class StudentCreateModel
     {
+        public int StudentID { get; set; }
         public string Username { get; set; }
-        public string Password { get; set; }  // Raw password from UI
+        public string Password { get; set; }
     }
 }

@@ -145,5 +145,46 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
+        // ✅ APPROVE
+        public async Task<ServiceResponse<PaymentModel>> ApprovePayment(int paymentID)
+        {
+            return await UpdatePaymentStatus(paymentID, "Approved");
+        }
+
+        // ❌ REJECT
+        public async Task<ServiceResponse<PaymentModel>> RejectPayment(int paymentID)
+        {
+            return await UpdatePaymentStatus(paymentID, "Rejected");
+        }
+
+        //  GET PENDING (FOR CASHIER)
+        public async Task<ServiceResponse<List<PaymentModel>>> GetPendingPayments()
+        {
+            var service = new ServiceResponse<List<PaymentModel>>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "GETALL");
+
+                var result = (await conn.QueryAsync<PaymentModel>(
+                    "SP_PAYMENTS",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                ))
+                .Where(x => x.PaymentStatus == "Pending")
+                .ToList();
+
+                service.Status = 200;
+                service.Data = result;
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
     }
 }

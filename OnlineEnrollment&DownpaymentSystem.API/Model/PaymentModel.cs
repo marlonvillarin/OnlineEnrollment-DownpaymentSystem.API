@@ -8,4 +8,10 @@
         public string PaymentStatus { get; set; }
         public DateTime PaymentDate { get; set; }
     }
+
+    public class PaymentRequest
+    {
+        public int EnrollmentID { get; set; }
+        public decimal Amount { get; set; }
+    }
 }

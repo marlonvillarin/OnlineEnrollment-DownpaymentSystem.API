@@ -5,7 +5,7 @@ using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class GradesController : ControllerBase
     {
         private readonly IGradesRepository _gradesRepository;

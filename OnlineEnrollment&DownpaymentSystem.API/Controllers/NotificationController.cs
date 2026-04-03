@@ -5,7 +5,8 @@ using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
+
     public class NotificationController : ControllerBase
     {
         private readonly INotificationRepository _notificationRepository;

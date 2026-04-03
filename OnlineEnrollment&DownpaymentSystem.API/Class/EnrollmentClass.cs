@@ -28,7 +28,11 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@Semester", enrollment.Semester);
                 param.Add("@StatementType", "INSERT");
 
-                var enrollmentID = await conn.QueryFirstOrDefaultAsync<int>("SP_ENROLLMENT", param, commandType: CommandType.StoredProcedure);
+                var enrollmentID = await conn.QueryFirstOrDefaultAsync<int>(
+                    "SP_ENROLLMENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                );
 
                 enrollment.EnrollmentID = enrollmentID;
                 enrollment.EnrollmentStatus = "Pending";
@@ -55,11 +59,19 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@EnrollmentStatus", status);
                 param.Add("@StatementType", "UPDATESTATUS");
 
-                await conn.ExecuteAsync("SP_ENROLLMENT", param, commandType: CommandType.StoredProcedure);
+                await conn.ExecuteAsync(
+                    "SP_ENROLLMENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                );
 
                 service.Status = 200;
                 service.Message = $"Enrollment status updated to {status}";
-                service.Data = new EnrollmentModel { EnrollmentID = enrollmentID, EnrollmentStatus = status };
+                service.Data = new EnrollmentModel
+                {
+                    EnrollmentID = enrollmentID,
+                    EnrollmentStatus = status
+                };
             }
             catch (Exception ex)
             {
@@ -67,6 +79,23 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 service.Message = ex.Message;
             }
             return service;
+        }
+
+       
+        public async Task<ServiceResponse<EnrollmentModel>> ApproveEnrollment(int enrollmentID)
+        {
+            return await UpdateEnrollmentStatus(enrollmentID, "Approved");
+        }
+
+      
+        public async Task<ServiceResponse<EnrollmentModel>> RejectEnrollment(int enrollmentID)
+        {
+            return await UpdateEnrollmentStatus(enrollmentID, "Rejected");
+        }
+
+        public async Task<ServiceResponse<EnrollmentModel>> CompleteEnrollment(int enrollmentID)
+        {
+            return await UpdateEnrollmentStatus(enrollmentID, "Enrolled");
         }
 
         public async Task<ServiceResponse<List<EnrollmentModel>>> GetEnrollmentsByStudent(int studentID)
@@ -78,7 +107,11 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@StudentID", studentID);
                 param.Add("@StatementType", "GETBYSTUDENT");
 
-                var result = (await conn.QueryAsync<EnrollmentModel>("SP_ENROLLMENT", param, commandType: CommandType.StoredProcedure)).ToList();
+                var result = (await conn.QueryAsync<EnrollmentModel>(
+                    "SP_ENROLLMENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
 
                 service.Status = 200;
                 service.Data = result;
@@ -90,6 +123,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             }
             return service;
         }
+
         public async Task<ServiceResponse<List<EnrollmentModel>>> GetAllEnrollments()
         {
             var service = new ServiceResponse<List<EnrollmentModel>>();
@@ -104,6 +138,36 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                     param,
                     commandType: CommandType.StoredProcedure
                 )).ToList();
+
+                service.Status = 200;
+                service.Data = result;
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
+
+        
+        public async Task<ServiceResponse<List<EnrollmentModel>>> GetPendingEnrollments()
+        {
+            var service = new ServiceResponse<List<EnrollmentModel>>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "GETALL");
+
+                var result = (await conn.QueryAsync<EnrollmentModel>(
+                    "SP_ENROLLMENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                ))
+                .Where(x => x.EnrollmentStatus == "Pending")
+                .ToList();
 
                 service.Status = 200;
                 service.Data = result;

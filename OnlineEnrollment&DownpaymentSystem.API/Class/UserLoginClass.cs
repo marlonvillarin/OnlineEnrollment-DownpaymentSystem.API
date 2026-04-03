@@ -2,8 +2,8 @@
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
 using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
-using System.Data;
 using System.Data.SqlClient;
+using System.Data;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -71,19 +71,11 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 );
 
                 if (user == null)
-                {
-                    service.Status = 400;
-                    service.Message = "User not found";
-                    return service;
-                }
+                    return new ServiceResponse<UserLoginModel> { Status = 400, Message = "User not found" };
 
                 bool verified = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
                 if (!verified)
-                {
-                    service.Status = 401;
-                    service.Message = "Invalid password";
-                    return service;
-                }
+                    return new ServiceResponse<UserLoginModel> { Status = 401, Message = "Invalid password" };
 
                 string token = GenerateToken(user);
 
@@ -108,10 +100,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 .Build()
                 .GetSection("JwtSettings");
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["SecretKey"])
-            );
-
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

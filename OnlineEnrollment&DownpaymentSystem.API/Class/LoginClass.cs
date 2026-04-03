@@ -26,7 +26,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             var service = new ServiceResponse<StudentLoginModel>();
             try
             {
-                // Hash the password
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
                 var param = new DynamicParameters();
@@ -72,38 +71,19 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 );
 
                 if (user == null)
-                {
-                    service.Status = 400;
-                    service.Message = "User not found";
-                    return service;
-                }
+                    return new ServiceResponse<StudentLoginModel> { Status = 400, Message = "User not found" };
 
-                // Verify password
                 bool verified = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-
                 if (!verified)
-                {
-                    service.Status = 401;
-                    service.Message = "Invalid password";
-                    return service;
-                }
+                    return new ServiceResponse<StudentLoginModel> { Status = 401, Message = "Invalid password" };
 
                 string token = GenerateToken(user);
 
                 service.Status = 200;
                 service.Message = "Authentication successful";
-                service.Data = new StudentLoginModel
-                {
-                    LoginID = user.LoginID,
-                    StudentID = user.StudentID,
-                    Username = user.Username,
-                    PasswordHash = user.PasswordHash
-                };
-
-                // You can add token property in ServiceResponse
+                service.Data = user;
                 service.Token = token;
             }
-
             catch (Exception ex)
             {
                 service.Status = 500;
@@ -120,31 +100,25 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 .Build()
                 .GetSection("JwtSettings");
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["SecretKey"])
-            );
-
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-        new Claim("StudentID", user.StudentID.ToString()),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim("StudentID", user.StudentID.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(
-                    Convert.ToDouble(jwtSettings["ExpiryMinutes"])
-                ),
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpiryMinutes"])),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
 }

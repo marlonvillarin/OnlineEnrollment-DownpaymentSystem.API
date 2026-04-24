@@ -16,9 +16,25 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddGrade(int studentID, string subjectName, string schoolYear, string semester, decimal? grade, string remarks)
+        public async Task<IActionResult> AddGrade(
+       int studentID,
+       int enrollmentID,
+       int subjectID,
+       string schoolYear,
+       string semester,
+       decimal? grade,
+       string remarks)
         {
-            var response = await _gradesRepository.AddGrade(studentID, subjectName, schoolYear, semester, grade, remarks);
+            var response = await _gradesRepository.AddGrade(
+                studentID,
+                enrollmentID,
+                subjectID,
+                schoolYear,
+                semester,
+                grade,
+                remarks
+            );
+
             return StatusCode(response.Status, response);
         }
 

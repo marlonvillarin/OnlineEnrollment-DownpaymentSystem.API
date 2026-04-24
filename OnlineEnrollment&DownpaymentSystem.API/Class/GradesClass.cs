@@ -16,14 +16,23 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             conn = new SqlConnection(config["ConnectionString:Enrollmentdb"]);
         }
 
-        public async Task<ServiceResponse<GradesModel>> AddGrade(int studentID, string subjectName, string schoolYear, string semester, decimal? grade, string remarks)
+        public async Task<ServiceResponse<GradesModel>> AddGrade(
+    int studentID,
+    int enrollmentID,
+    int subjectID,
+    string schoolYear,
+    string semester,
+    decimal? grade,
+    string remarks)
         {
             var service = new ServiceResponse<GradesModel>();
+
             try
             {
                 var param = new DynamicParameters();
                 param.Add("@StudentID", studentID);
-                param.Add("@SubjectName", subjectName);
+                param.Add("@EnrollmentID", enrollmentID);   
+                param.Add("@SubjectID", subjectID);         
                 param.Add("@SchoolYear", schoolYear);
                 param.Add("@Semester", semester);
                 param.Add("@Grade", grade);
@@ -31,7 +40,9 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@StatementType", "INSERT");
 
                 var result = await conn.QueryFirstOrDefaultAsync<GradesModel>(
-                    "SP_GRADES", param, commandType: CommandType.StoredProcedure
+                    "SP_GRADES",
+                    param,
+                    commandType: CommandType.StoredProcedure
                 );
 
                 service.Status = 200;
@@ -43,6 +54,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 service.Status = 500;
                 service.Message = ex.Message;
             }
+
             return service;
         }
 

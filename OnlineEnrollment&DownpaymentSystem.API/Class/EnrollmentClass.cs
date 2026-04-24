@@ -19,11 +19,13 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
         public async Task<ServiceResponse<EnrollmentModel>> CreateEnrollment(EnrollmentModel enrollment)
         {
             var service = new ServiceResponse<EnrollmentModel>();
+
             try
             {
                 var param = new DynamicParameters();
                 param.Add("@StudentID", enrollment.StudentID);
                 param.Add("@Course", enrollment.Course);
+                param.Add("@YearLevel", enrollment.YearLevel);
                 param.Add("@SchoolYear", enrollment.SchoolYear);
                 param.Add("@Semester", enrollment.Semester);
                 param.Add("@StatementType", "INSERT");
@@ -37,6 +39,20 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 enrollment.EnrollmentID = enrollmentID;
                 enrollment.EnrollmentStatus = "Pending";
 
+              
+                var subjectParam = new DynamicParameters();
+                subjectParam.Add("@StudentID", enrollment.StudentID);
+                subjectParam.Add("@EnrollmentID", enrollment.EnrollmentID);
+                subjectParam.Add("@Course", enrollment.Course);
+                subjectParam.Add("@YearLevel", enrollment.YearLevel);
+                subjectParam.Add("@Semester", enrollment.Semester);
+
+                await conn.ExecuteAsync(
+                    "SP_GENERATE_STUDENT_SUBJECTS",
+                    subjectParam,
+                    commandType: CommandType.StoredProcedure
+                );
+
                 service.Status = 200;
                 service.Message = "Enrollment created successfully";
                 service.Data = enrollment;
@@ -46,8 +62,10 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 service.Status = 500;
                 service.Message = ex.Message;
             }
+
             return service;
         }
+
 
         public async Task<ServiceResponse<EnrollmentModel>> UpdateEnrollmentStatus(int enrollmentID, string status)
         {

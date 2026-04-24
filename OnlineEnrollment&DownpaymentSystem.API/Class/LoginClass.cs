@@ -56,6 +56,57 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
+        public async Task<ServiceResponse<StudentLoginModel>> CreateLoginAndNotify(int studentID, string username, string password)
+        {
+            var service = new ServiceResponse<StudentLoginModel>();
+
+            try
+            {
+                // 1️⃣ Hash password
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+                // 2️⃣ Create login
+                var loginParams = new DynamicParameters();
+                loginParams.Add("@StudentID", studentID);
+                loginParams.Add("@Username", username);
+                loginParams.Add("@PasswordHash", hashedPassword);
+                loginParams.Add("@StatementType", "INSERT");
+
+                var loginID = await conn.QueryFirstOrDefaultAsync<int>(
+                    "SP_STUDENTLOGIN", loginParams, commandType: CommandType.StoredProcedure
+                );
+
+                // 3️⃣ Send notification
+                var message = $"Your account is approved!\nUsername: {username}\nPassword: {password}";
+
+                var notifParams = new DynamicParameters();
+                notifParams.Add("@StudentID", studentID);
+                notifParams.Add("@Message", message);
+                notifParams.Add("@StatementType", "INSERT");
+
+                await conn.QueryFirstOrDefaultAsync<NotificationModel>(
+                    "SP_NOTIFICATIONS", notifParams, commandType: CommandType.StoredProcedure
+                );
+
+                // 4️⃣ Return result
+                service.Status = 200;
+                service.Message = "Login created and notification sent successfully";
+                service.Data = new StudentLoginModel
+                {
+                    LoginID = loginID,
+                    StudentID = studentID,
+                    Username = username,
+                    PasswordHash = hashedPassword
+                };
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
 
         public async Task<ServiceResponse<StudentLoginModel>> Authenticate(string username, string password)
         {

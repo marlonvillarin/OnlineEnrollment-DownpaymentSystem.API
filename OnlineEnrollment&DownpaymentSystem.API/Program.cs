@@ -39,7 +39,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentClass>();
 builder.Services.AddScoped<IStudentDocumentRepository, DocumentClass>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentClass>();
 
-//CORS for Blazor WASM
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
@@ -80,7 +80,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Middleware
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -23,7 +23,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             return StatusCode(response.Status, response);
         }
 
-        [HttpGet("{studentID}")]
+        [HttpGet("{studentID}/Accounts")]
         public async Task<IActionResult> GetNotifications(int studentID)
         {
             var response = await _notificationRepository.GetNotificationsByStudent(studentID);

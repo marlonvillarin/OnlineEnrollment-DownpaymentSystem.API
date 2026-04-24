@@ -7,5 +7,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
     {
         Task<ServiceResponse<StudentLoginModel>> CreateLogin(int studentID, string username, string password);
         Task<ServiceResponse<StudentLoginModel>> Authenticate(string username, string password);
+
+        Task<ServiceResponse<StudentLoginModel>> CreateLoginAndNotify(int studentID, string username, string password);
     }
 }

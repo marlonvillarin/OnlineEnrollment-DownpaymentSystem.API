@@ -20,7 +20,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
         [HttpPost("login")]
-        //Student & Staff
+       
         public async Task<IActionResult> Login([FromBody] LoginRequest login)
         {
             var studentResp = await _studentLoginRepo.Authenticate(login.Username, login.Password);
@@ -33,11 +33,18 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
         [HttpPost("create-student")]
-        [Authorize(Roles = "Admin,Registrar,Cashier")]
+
         public async Task<IActionResult> CreateStudent([FromBody] StudentCreateModel studentLogin)
         {
             var resp = await _studentLoginRepo.CreateLogin(studentLogin.StudentID, studentLogin.Username, studentLogin.Password);
             return StatusCode(resp.Status, resp);
+        }
+
+        [HttpPost("create-login/{studentID}")]
+        public async Task<IActionResult> CreateLogin(int studentID, [FromBody] LoginRequest request)
+        {
+            var result = await _studentLoginRepo.CreateLoginAndNotify(studentID, request.Username, request.Password);
+            return StatusCode(result.Status, result);
         }
 
         [HttpPost("create-staff")]

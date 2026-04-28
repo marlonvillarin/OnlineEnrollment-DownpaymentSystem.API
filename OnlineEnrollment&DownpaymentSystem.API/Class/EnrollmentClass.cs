@@ -39,19 +39,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 enrollment.EnrollmentID = enrollmentID;
                 enrollment.EnrollmentStatus = "Pending";
 
-              
-                var subjectParam = new DynamicParameters();
-                subjectParam.Add("@StudentID", enrollment.StudentID);
-                subjectParam.Add("@EnrollmentID", enrollment.EnrollmentID);
-                subjectParam.Add("@Course", enrollment.Course);
-                subjectParam.Add("@YearLevel", enrollment.YearLevel);
-                subjectParam.Add("@Semester", enrollment.Semester);
-
-                await conn.ExecuteAsync(
-                    "SP_GENERATE_STUDENT_SUBJECTS",
-                    subjectParam,
-                    commandType: CommandType.StoredProcedure
-                );
 
                 service.Status = 200;
                 service.Message = "Enrollment created successfully";

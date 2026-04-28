@@ -37,6 +37,7 @@ builder.Services.AddScoped<IValidationRepository, ValidationClass>();
 builder.Services.AddScoped<IGradesRepository, GradesClass>();
 builder.Services.AddScoped<IPaymentRepository, PaymentClass>();
 builder.Services.AddScoped<IStudentDocumentRepository, DocumentClass>();
+builder.Services.AddScoped<ISubjectRepository, SubjectClass>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentClass>();
 
 

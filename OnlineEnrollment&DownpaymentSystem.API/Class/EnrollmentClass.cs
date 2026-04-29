@@ -28,21 +28,27 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@YearLevel", enrollment.YearLevel);
                 param.Add("@SchoolYear", enrollment.SchoolYear);
                 param.Add("@Semester", enrollment.Semester);
+                param.Add("@EnrollmentStatus", "Pending");
                 param.Add("@StatementType", "INSERT");
 
-                var enrollmentID = await conn.QueryFirstOrDefaultAsync<int>(
+               
+                var result = await conn.QueryFirstOrDefaultAsync<EnrollmentModel>(
                     "SP_ENROLLMENT",
                     param,
                     commandType: CommandType.StoredProcedure
                 );
 
-                enrollment.EnrollmentID = enrollmentID;
-                enrollment.EnrollmentStatus = "Pending";
-
-
-                service.Status = 200;
-                service.Message = "Enrollment created successfully";
-                service.Data = enrollment;
+                if (result != null)
+                {
+                    service.Status = 200;
+                    service.Message = "Enrollment created successfully";
+                    service.Data = result; 
+                }
+                else
+                {
+                    service.Status = 400;
+                    service.Message = "Failed to create enrollment";
+                }
             }
             catch (Exception ex)
             {
@@ -52,7 +58,6 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
-
 
         public async Task<ServiceResponse<EnrollmentModel>> UpdateEnrollmentStatus(int enrollmentID, string status)
         {

@@ -5,20 +5,18 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
 {
     public interface IPaymentRepository
     {
-        //  CREATE
-        Task<ServiceResponse<PaymentModel>> CreatePayment(int enrollmentID, decimal amount);
+        Task<ServiceResponse<PaymentModel>> CreatePayment(
+                int enrollmentID,
+                decimal amount,
+                string? referenceNumber = null,
+                string? paymentMethod = null,
+                string? remarks = null);
 
-        //  INTERNAL
-        Task<ServiceResponse<PaymentModel>> UpdatePaymentStatus(int paymentID, string status);
+        Task<ServiceResponse<List<PaymentModel>>> GetPendingPaymentsAsync(string searchTerm = null);
+        Task<ServiceResponse<PaymentModel>> ApprovePaymentAsync(int paymentId);
+        Task<ServiceResponse<PaymentModel>> RejectPaymentAsync(int paymentId);
+        Task<ServiceResponse<List<PaymentModel>>> GetApprovedPaymentsAsync(string searchTerm = null);
+        Task<ServiceResponse<List<PaymentModel>>> GetAllPaymentsAsync(string searchTerm = null);
 
-        //  CASHIER ACTIONS
-        Task<ServiceResponse<PaymentModel>> ApprovePayment(int paymentID);
-        Task<ServiceResponse<PaymentModel>> RejectPayment(int paymentID);
-
-        //  GET DATA
-        Task<ServiceResponse<List<PaymentModel>>> GetAllPayments();
-        Task<ServiceResponse<List<PaymentModel>>> GetPendingPayments();
-        Task<ServiceResponse<List<PaymentModel>>> GetPaymentsByEnrollment(int enrollmentID);
-        Task<ServiceResponse<PaymentModel>> GetPaymentByID(int paymentID);
     }
 }

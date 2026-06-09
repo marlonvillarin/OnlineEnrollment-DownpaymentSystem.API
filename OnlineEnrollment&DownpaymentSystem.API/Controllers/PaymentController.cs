@@ -15,60 +15,54 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             _paymentRepository = paymentRepository;
         }
 
-        // CREATE PAYMENT (FROM FLUTTER)
         [HttpPost]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest request)
         {
-            var response = await _paymentRepository.CreatePayment(request.EnrollmentID, request.Amount);
+            var response = await _paymentRepository.CreatePayment(
+                request.EnrollmentID,
+                request.Amount,
+                request.ReferenceNumber,
+                request.PaymentMethod,
+                request.Remarks
+            );
             return StatusCode(response.Status, response);
         }
 
-        // GET ALL
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var response = await _paymentRepository.GetAllPayments();
-            return StatusCode(response.Status, response);
-        }
-
-        // GET PENDING (CASHIER PAGE)
         [HttpGet("pending")]
-        public async Task<IActionResult> GetPending()
+        public async Task<IActionResult> GetPendingPayments([FromQuery] string search = null)
         {
-            var response = await _paymentRepository.GetPendingPayments();
+            var response = await _paymentRepository.GetPendingPaymentsAsync(search);
             return StatusCode(response.Status, response);
         }
 
-        //  GET BY ENROLLMENT
-        [HttpGet("enrollment/{enrollmentID}")]
-        public async Task<IActionResult> GetPaymentsByEnrollment(int enrollmentID)
+        [HttpPost("approve/{id}")]
+        public async Task<IActionResult> ApprovePayment(int id)
         {
-            var response = await _paymentRepository.GetPaymentsByEnrollment(enrollmentID);
+            var response = await _paymentRepository.ApprovePaymentAsync(id);
             return StatusCode(response.Status, response);
         }
 
-        //  GET BY ID
-        [HttpGet("{paymentID}")]
-        public async Task<IActionResult> GetPaymentByID(int paymentID)
+        [HttpPost("reject/{id}")]
+        public async Task<IActionResult> RejectPayment(int id)
         {
-            var response = await _paymentRepository.GetPaymentByID(paymentID);
+            var response = await _paymentRepository.RejectPaymentAsync(id);
             return StatusCode(response.Status, response);
         }
 
-        // APPROVE 
-        [HttpPost("{paymentID}/approve")]
-        public async Task<IActionResult> Approve(int paymentID)
+        [HttpGet("approved")]
+        public async Task<IActionResult> GetApprovedPayments([FromQuery] string search = null)
         {
-            var response = await _paymentRepository.ApprovePayment(paymentID);
+            var response = await _paymentRepository.GetApprovedPaymentsAsync(search);
             return StatusCode(response.Status, response);
         }
 
-        // REJECT
-        [HttpPost("{paymentID}/reject")]
-        public async Task<IActionResult> Reject(int paymentID)
+      
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllPayments([FromQuery] string search = null)
         {
-            var response = await _paymentRepository.RejectPayment(paymentID);
+            var response = await _paymentRepository.GetAllPaymentsAsync(search);
             return StatusCode(response.Status, response);
         }
+
     }
 }

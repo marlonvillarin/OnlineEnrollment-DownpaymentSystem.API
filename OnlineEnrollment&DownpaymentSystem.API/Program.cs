@@ -7,10 +7,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// JWT Settings from appsettings.json
+
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 
-// Authentication
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,17 +28,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Repositories
+builder.Services.AddScoped<IStudentDetailsRepository, StudentDetailsClass>();
 builder.Services.AddScoped<IUserLoginRepository, UserLoginClass>();
 builder.Services.AddScoped<ILoginRepository, LoginClass>();
 builder.Services.AddScoped<IStudentRepository, StudentClass>();
-builder.Services.AddScoped<INotificationRepository, NotificationClass>();
-builder.Services.AddScoped<IValidationRepository, ValidationClass>();
-builder.Services.AddScoped<IGradesRepository, GradesClass>();
 builder.Services.AddScoped<IPaymentRepository, PaymentClass>();
 builder.Services.AddScoped<IStudentDocumentRepository, DocumentClass>();
-builder.Services.AddScoped<ISubjectRepository, SubjectClass>();
+builder.Services.AddScoped<IEligibilityRepository, EligibilityClass>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentClass>();
+builder.Services.AddScoped<ITrackerRepository, TrackerClass>();
+builder.Services.AddScoped<EmailService>();
 
 
 builder.Services.AddCors(options =>

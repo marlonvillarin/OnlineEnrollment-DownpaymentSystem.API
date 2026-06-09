@@ -10,13 +10,20 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
     public class PaymentClass : IPaymentRepository
     {
         private readonly SqlConnection conn;
+        
+        private readonly EmailService _emailService;
 
-        public PaymentClass(IConfiguration config)
+        public PaymentClass(IConfiguration config, EmailService emailService)
         {
             conn = new SqlConnection(config["ConnectionString:Enrollmentdb"]);
+            _emailService = emailService;
         }
-
-        public async Task<ServiceResponse<PaymentModel>> CreatePayment(int enrollmentID, decimal amount)
+        public async Task<ServiceResponse<PaymentModel>> CreatePayment(
+            int enrollmentID,
+            decimal amount,
+            string? referenceNumber = null,
+            string? paymentMethod = null,
+            string? remarks = null)
         {
             var service = new ServiceResponse<PaymentModel>();
             try
@@ -24,6 +31,9 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 var param = new DynamicParameters();
                 param.Add("@EnrollmentID", enrollmentID);
                 param.Add("@Amount", amount);
+                param.Add("@ReferenceNumber", referenceNumber);
+                param.Add("@PaymentMethod", paymentMethod);
+                param.Add("@Remarks", remarks);
                 param.Add("@StatementType", "INSERT");
 
                 var result = await conn.QueryFirstOrDefaultAsync<PaymentModel>(
@@ -43,73 +53,24 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             return service;
         }
 
-        public async Task<ServiceResponse<PaymentModel>> UpdatePaymentStatus(int paymentID, string status)
-        {
-            var service = new ServiceResponse<PaymentModel>();
-            try
-            {
-                var param = new DynamicParameters();
-                param.Add("@PaymentID", paymentID);
-                param.Add("@PaymentStatus", status);
-                param.Add("@StatementType", "UPDATESTATUS");
-
-                var result = await conn.QueryFirstOrDefaultAsync<PaymentModel>(
-                    "SP_PAYMENTS", param, commandType: CommandType.StoredProcedure
-                );
-
-                service.Status = 200;
-                service.Message = "Payment status updated successfully";
-                service.Data = result;
-            }
-            catch (Exception ex)
-            {
-                service.Status = 500;
-                service.Message = ex.Message;
-            }
-
-            return service;
-        }
-
-        public async Task<ServiceResponse<List<PaymentModel>>> GetPaymentsByEnrollment(int enrollmentID)
+        public async Task<ServiceResponse<List<PaymentModel>>> GetPendingPaymentsAsync(string searchTerm = null)
         {
             var service = new ServiceResponse<List<PaymentModel>>();
+
             try
             {
                 var param = new DynamicParameters();
-                param.Add("@EnrollmentID", enrollmentID);
-                param.Add("@StatementType", "GETBYENROLLMENT");
+                param.Add("@StatementType", "GETPENDING");
+                param.Add("@SearchTerm", searchTerm);
 
-                var result = (await conn.QueryAsync<PaymentModel>(
-                    "SP_PAYMENTS", param, commandType: CommandType.StoredProcedure
-                )).ToList();
-
-                service.Status = 200;
-                service.Data = result;
-            }
-            catch (Exception ex)
-            {
-                service.Status = 500;
-                service.Message = ex.Message;
-            }
-
-            return service;
-        }
-
-        public async Task<ServiceResponse<PaymentModel>> GetPaymentByID(int paymentID)
-        {
-            var service = new ServiceResponse<PaymentModel>();
-            try
-            {
-                var param = new DynamicParameters();
-                param.Add("@PaymentID", paymentID);
-                param.Add("@StatementType", "GETBYID");
-
-                var result = await conn.QueryFirstOrDefaultAsync<PaymentModel>(
-                    "SP_PAYMENTS", param, commandType: CommandType.StoredProcedure
+                var result = await conn.QueryAsync<PaymentModel>(
+                    "SP_PAYMENTS",
+                    param,
+                    commandType: CommandType.StoredProcedure
                 );
 
                 service.Status = 200;
-                service.Data = result;
+                service.Data = result.ToList();
             }
             catch (Exception ex)
             {
@@ -119,7 +80,38 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
-        public async Task<ServiceResponse<List<PaymentModel>>> GetAllPayments()
+
+     
+        public async Task<ServiceResponse<List<PaymentModel>>> GetApprovedPaymentsAsync(string searchTerm = null)
+        {
+            var service = new ServiceResponse<List<PaymentModel>>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "GETAPPROVED");
+                param.Add("@SearchTerm", searchTerm);
+
+                var result = await conn.QueryAsync<PaymentModel>(
+                    "SP_PAYMENTS",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                service.Status = 200;
+                service.Data = result.ToList();
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
+
+     
+        public async Task<ServiceResponse<List<PaymentModel>>> GetAllPaymentsAsync(string searchTerm = null)
         {
             var service = new ServiceResponse<List<PaymentModel>>();
 
@@ -127,15 +119,16 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             {
                 var param = new DynamicParameters();
                 param.Add("@StatementType", "GETALL");
+                param.Add("@SearchTerm", searchTerm);
 
-                var result = (await conn.QueryAsync<PaymentModel>(
+                var result = await conn.QueryAsync<PaymentModel>(
                     "SP_PAYMENTS",
                     param,
                     commandType: CommandType.StoredProcedure
-                )).ToList();
+                );
 
                 service.Status = 200;
-                service.Data = result;
+                service.Data = result.ToList();
             }
             catch (Exception ex)
             {
@@ -145,38 +138,45 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
-        // ✅ APPROVE
-        public async Task<ServiceResponse<PaymentModel>> ApprovePayment(int paymentID)
-        {
-            return await UpdatePaymentStatus(paymentID, "Approved");
-        }
 
-        // ❌ REJECT
-        public async Task<ServiceResponse<PaymentModel>> RejectPayment(int paymentID)
+        public async Task<ServiceResponse<PaymentModel>> ApprovePaymentAsync(int paymentId)
         {
-            return await UpdatePaymentStatus(paymentID, "Rejected");
-        }
-
-        //  GET PENDING (FOR CASHIER)
-        public async Task<ServiceResponse<List<PaymentModel>>> GetPendingPayments()
-        {
-            var service = new ServiceResponse<List<PaymentModel>>();
+            var service = new ServiceResponse<PaymentModel>();
 
             try
             {
                 var param = new DynamicParameters();
-                param.Add("@StatementType", "GETALL");
+                param.Add("@StatementType", "APPROVE");
+                param.Add("@PaymentID", paymentId);
 
-                var result = (await conn.QueryAsync<PaymentModel>(
+                var result = await conn.QueryFirstOrDefaultAsync<PaymentModel>(
                     "SP_PAYMENTS",
                     param,
                     commandType: CommandType.StoredProcedure
-                ))
-                .Where(x => x.PaymentStatus == "Pending")
-                .ToList();
+                );
+                if (result != null)
+                {
+                  
+                    var studentInfo = await GetStudentInfo(result.StudentID);
+                    if (!string.IsNullOrEmpty(studentInfo.Email))
+                    {
+                        await _emailService.SendPaymentApprovalEmail(
+                            studentInfo.Email,
+                            studentInfo.FullName,
+                            result.Amount,
+                            result.ReferenceNumber ?? ""
+                        );
+                    }
 
-                service.Status = 200;
-                service.Data = result;
+                    service.Status = 200;
+                    service.Data = result;
+                    service.Message = "Payment approved successfully";
+                }
+                else
+                {
+                    service.Status = 404;
+                    service.Message = "Payment not found";
+                }
             }
             catch (Exception ex)
             {
@@ -185,6 +185,68 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             }
 
             return service;
+        }
+
+        public async Task<ServiceResponse<PaymentModel>> RejectPaymentAsync(int paymentId)
+        {
+            var service = new ServiceResponse<PaymentModel>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StatementType", "REJECT");
+                param.Add("@PaymentID", paymentId);
+
+                var result = await conn.QueryFirstOrDefaultAsync<PaymentModel>(
+                    "SP_PAYMENTS",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                );
+                if (result != null)
+                {
+                   
+                    var studentInfo = await GetStudentInfo(result.StudentID);
+                    if (!string.IsNullOrEmpty(studentInfo.Email))
+                    {
+                        await _emailService.SendPaymentRejectionEmail(
+                            studentInfo.Email,
+                            studentInfo.FullName,
+                            result.Amount,
+                            result.ReferenceNumber ?? "",
+                            "Payment verification failed. Please check your payment details and try again."
+                        );
+                    }
+
+                    service.Status = 200;
+                    service.Data = result;
+                    service.Message = "Payment rejected";
+                }
+                else
+                {
+                    service.Status = 404;
+                    service.Message = "Payment not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
+
+    
+        private async Task<(string Email, string FullName)> GetStudentInfo(int studentId)
+        {
+            var sql = "SELECT Email, FirstName + ' ' + LastName AS FullName FROM TBL_Student WHERE StudentID = @StudentID";
+            var result = await conn.QueryFirstOrDefaultAsync<dynamic>(sql, new { StudentID = studentId });
+
+            if (result != null)
+            {
+                return (result.Email, result.FullName);
+            }
+            return (string.Empty, string.Empty);
         }
     }
 }

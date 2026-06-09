@@ -3,8 +3,8 @@ using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
 
 namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
 {
-    public interface IValidationRepository
+    public interface ITrackerRepository
     {
-        Task<ServiceResponse<ValidationModel>> ValidateStudentForEnrollment(int studentID);
+        Task<ServiceResponse<TrackResponse>> TrackApplication(string searchValue);
     }
 }

@@ -17,20 +17,20 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
 
         //  CREATE ENROLLMENT
         [HttpPost]
-        public async Task<IActionResult> CreateEnrollment([FromBody] EnrollmentModel enrollment)
+        public async Task<IActionResult> CreateEnrollment([FromBody] EnrollmentStudent enrollment)
         {
             var response = await _enrollmentRepository.CreateEnrollment(enrollment);
             return StatusCode(response.Status, response);
         }
 
-        //  GET ALL
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpPut]
+        public async Task<IActionResult> UpdateEnrollment([FromBody] EnrollmentStudent enrollment)
         {
-            var response = await _enrollmentRepository.GetAllEnrollments();
+            var response = await _enrollmentRepository.UpdateEnrollment(enrollment);
             return StatusCode(response.Status, response);
         }
 
+     
         // GET PENDING (ADMIN PAGE)
         [HttpGet("pending")]
         public async Task<IActionResult> GetPending()
@@ -68,6 +68,44 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         public async Task<IActionResult> Complete(int enrollmentID)
         {
             var response = await _enrollmentRepository.CompleteEnrollment(enrollmentID);
+            return StatusCode(response.Status, response);
+        }
+
+
+
+        //new
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllEnrollmentsWithStudentInfo()
+        {
+            var response = await _enrollmentRepository.GetAllEnrollmentsWithStudentInfoAsync();
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpGet("admin-pending")]
+        public async Task<IActionResult> GetAdminPendingEnrollments()
+        {
+            var response = await _enrollmentRepository.GetAdminPendingEnrollmentsAsync();
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpGet("approved")]
+        public async Task<IActionResult> GetApprovedEnrollments()
+        {
+            var response = await _enrollmentRepository.GetApprovedEnrollmentsAsync();
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpPost("admin-approve/{id}")]
+        public async Task<IActionResult> AdminApproveEnrollment(int id)
+        {
+            var response = await _enrollmentRepository.AdminApproveEnrollmentAsync(id);
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpPost("admin-reject/{id}")]
+        public async Task<IActionResult> AdminRejectEnrollment(int id)
+        {
+            var response = await _enrollmentRepository.AdminRejectEnrollmentAsync(id);
             return StatusCode(response.Status, response);
         }
     }

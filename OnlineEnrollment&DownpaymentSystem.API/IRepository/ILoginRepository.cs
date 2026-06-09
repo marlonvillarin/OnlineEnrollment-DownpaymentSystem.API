@@ -8,6 +8,9 @@ namespace OnlineEnrollment_DownpaymentSystem.API.IRepository
         Task<ServiceResponse<StudentLoginModel>> CreateLogin(int studentID, string username, string password);
         Task<ServiceResponse<StudentLoginModel>> Authenticate(string username, string password);
 
-        Task<ServiceResponse<StudentLoginModel>> CreateLoginAndNotify(int studentID, string username, string password);
+
+        Task<ServiceResponse<StudentAccountModel>> GetStudentByIdAsync(int studentId);
+        Task<ServiceResponse<List<StudentAccountListModel>>> GetAllStudentAccountsAsync(string searchTerm = null);
+        Task<bool> AccountExistsAsync(int studentId);
     }
 }

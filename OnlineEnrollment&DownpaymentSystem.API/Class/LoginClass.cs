@@ -15,10 +15,12 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
     public class LoginClass : ILoginRepository
     {
         private readonly SqlConnection conn;
+        private readonly EmailService _emailService; 
 
-        public LoginClass(IConfiguration config)
+        public LoginClass(IConfiguration config, EmailService emailService) 
         {
             conn = new SqlConnection(config["ConnectionString:Enrollmentdb"]);
+            _emailService = emailService; 
         }
 
         public async Task<ServiceResponse<StudentLoginModel>> CreateLogin(int studentID, string username, string password)
@@ -38,6 +40,22 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                     "SP_STUDENTLOGIN", param, commandType: CommandType.StoredProcedure
                 );
 
+              
+                var student = await GetStudentInfo(studentID);
+
+                if (!string.IsNullOrEmpty(student.Email))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await _emailService.SendCredentialsEmail(
+                            student.Email,
+                            username,
+                            password,
+                            student.FullName
+                        );
+                    });
+                }
+
                 service.Status = 200;
                 service.Message = "Login created successfully";
                 service.Data = new StudentLoginModel
@@ -56,58 +74,47 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
 
             return service;
         }
-        public async Task<ServiceResponse<StudentLoginModel>> CreateLoginAndNotify(int studentID, string username, string password)
+
+        private async Task<(string Email, string FullName)> GetStudentInfo(int studentId)
         {
-            var service = new ServiceResponse<StudentLoginModel>();
+            var sql = "SELECT Email, FirstName + ' ' + LastName AS FullName FROM TBL_Student WHERE StudentID = @StudentID";
+            var result = await conn.QueryFirstOrDefaultAsync<dynamic>(sql, new { StudentID = studentId });
+
+            if (result != null)
+            {
+                return (result.Email, result.FullName);
+            }
+            return (string.Empty, string.Empty);
+        }
+
+        public async Task<ServiceResponse<List<StudentAccountListModel>>> GetAllStudentAccountsAsync(string searchTerm = null)
+        {
+            var service = new ServiceResponse<List<StudentAccountListModel>>();
 
             try
             {
-                // 1️⃣ Hash password
-                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                var param = new DynamicParameters();
+                param.Add("@SearchTerm", searchTerm);
 
-                // 2️⃣ Create login
-                var loginParams = new DynamicParameters();
-                loginParams.Add("@StudentID", studentID);
-                loginParams.Add("@Username", username);
-                loginParams.Add("@PasswordHash", hashedPassword);
-                loginParams.Add("@StatementType", "INSERT");
-
-                var loginID = await conn.QueryFirstOrDefaultAsync<int>(
-                    "SP_STUDENTLOGIN", loginParams, commandType: CommandType.StoredProcedure
+                var result = await conn.QueryAsync<StudentAccountListModel>(
+                    "SP_GET_ALL_STUDENT_ACCOUNTS",
+                    param,
+                    commandType: CommandType.StoredProcedure
                 );
 
-                // 3️⃣ Send notification
-                var message = $"Your account is approved!\nUsername: {username}\nPassword: {password}";
-
-                var notifParams = new DynamicParameters();
-                notifParams.Add("@StudentID", studentID);
-                notifParams.Add("@Message", message);
-                notifParams.Add("@StatementType", "INSERT");
-
-                await conn.QueryFirstOrDefaultAsync<NotificationModel>(
-                    "SP_NOTIFICATIONS", notifParams, commandType: CommandType.StoredProcedure
-                );
-
-                // 4️⃣ Return result
                 service.Status = 200;
-                service.Message = "Login created and notification sent successfully";
-                service.Data = new StudentLoginModel
-                {
-                    LoginID = loginID,
-                    StudentID = studentID,
-                    Username = username,
-                    PasswordHash = hashedPassword
-                };
+                service.Data = result.ToList();
+              
             }
             catch (Exception ex)
             {
                 service.Status = 500;
                 service.Message = ex.Message;
+               
             }
 
             return service;
         }
-
         public async Task<ServiceResponse<StudentLoginModel>> Authenticate(string username, string password)
         {
             var service = new ServiceResponse<StudentLoginModel>();
@@ -144,6 +151,55 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
             return service;
         }
 
+        public async Task<ServiceResponse<StudentAccountModel>> GetStudentByIdAsync(int studentId)
+        {
+            var service = new ServiceResponse<StudentAccountModel>();
+
+            try
+            {
+                var param = new DynamicParameters();
+                param.Add("@StudentID", studentId);
+                param.Add("@StatementType", "GETBYID");
+
+                var result = await conn.QueryFirstOrDefaultAsync<StudentAccountModel>(
+                    "SP_STUDENT",
+                    param,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                if (result != null)
+                {
+                    service.Status = 200;
+                    service.Data = result;
+                    
+                }
+                else
+                {
+                    service.Status = 404;
+                    service.Message = "Student not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                service.Status = 500;
+                service.Message = ex.Message;
+            }
+
+            return service;
+        }
+
+        public async Task<bool> AccountExistsAsync(int studentId)
+        {
+            var param = new DynamicParameters();
+            param.Add("@StudentID", studentId);
+            param.Add("@StatementType", "CHECKEXISTS");
+
+            var result = await conn.QueryFirstOrDefaultAsync<int>(
+                "SP_STUDENTLOGIN", param, commandType: CommandType.StoredProcedure
+            );
+
+            return result > 0;
+        }
         private string GenerateToken(StudentLoginModel user)
         {
             var jwtSettings = new ConfigurationBuilder()

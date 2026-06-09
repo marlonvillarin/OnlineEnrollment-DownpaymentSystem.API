@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MimeKit;
 using OnlineEnrollment_DownpaymentSystem.API.IRepository;
 using OnlineEnrollment_DownpaymentSystem.API.Model;
 using OnlineEnrollment_DownpaymentSystem.API.Model.Response;
@@ -40,20 +43,41 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
             return StatusCode(resp.Status, resp);
         }
 
-        [HttpPost("create-login/{studentID}")]
-        public async Task<IActionResult> CreateLogin(int studentID, [FromBody] LoginRequest request)
-        {
-            var result = await _studentLoginRepo.CreateLoginAndNotify(studentID, request.Username, request.Password);
-            return StatusCode(result.Status, result);
-        }
-
+      
         [HttpPost("create-staff")]
         public async Task<IActionResult> CreateStaff([FromBody] StaffCreateModel staffLogin)
         {
             var resp = await _staffLoginRepo.CreateLogin(staffLogin.Username, staffLogin.Password, staffLogin.Role);
             return StatusCode(resp.Status, resp);
         }
+
+
+
+
+        [HttpGet("student/{studentId}")]
+public async Task<IActionResult>GetStudentByIdAsync(int studentId)
+        {
+            var response = await _studentLoginRepo.GetStudentByIdAsync(studentId);
+            return StatusCode(response.Status, response);
+        }
+
+        [HttpGet("account-exists/{studentId}")]
+        public async Task<IActionResult> AccountExists(int studentId)
+        {
+            var exists = await _studentLoginRepo.AccountExistsAsync(studentId);
+            return Ok(new ServiceResponse<bool> { Status = 200, Data = exists });
+        }
+
+        [HttpGet("all-accounts")]
+        public async Task<IActionResult> GetAllStudentAccounts([FromQuery] string search = null)
+        {
+            var response = await _studentLoginRepo.GetAllStudentAccountsAsync(search);
+            return StatusCode(response.Status, response);
+        }
+
     }
+
+
 
  
 }

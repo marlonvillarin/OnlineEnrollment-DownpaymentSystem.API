@@ -64,6 +64,7 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Class
                 param.Add("@ContactNumber", student.ContactNumber);
                 param.Add("@Email", student.Email);
                 param.Add("@Address", student.Address);
+                param.Add("@StudentType", student.StudentType);
                 param.Add("@StatementType", "UPDATE");
 
                 await conn.ExecuteAsync("SP_STUDENT", param, commandType: CommandType.StoredProcedure);

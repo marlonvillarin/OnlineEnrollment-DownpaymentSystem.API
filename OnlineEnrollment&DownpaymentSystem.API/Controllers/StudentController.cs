@@ -41,10 +41,39 @@ namespace OnlineEnrollment_DownpaymentSystem.API.Controllers
         }
 
         [HttpPost("documents")]
-        public async Task<IActionResult> UploadDocument(int studentID, string documentType, string filePath)
+        public async Task<IActionResult> UploadDocument(
+      [FromForm] int studentID,
+      [FromForm] string documentType,
+      IFormFile file)  
         {
-            var response = await _studentRepository.UploadDocument(studentID, documentType, filePath);
-            return StatusCode(response.Status, response);
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { status = 400, message = "No file uploaded" });
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "Documents");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var fileName = $"{studentID}_{documentType.Replace(" ", "_")}_{DateTime.Now.Ticks}.jpg";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var response = await _studentRepository.UploadDocument(studentID, documentType, filePath);
+                return StatusCode(response.Status, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = 500, message = ex.Message });
+            }
         }
 
         [HttpGet("documents/{studentID}")]
